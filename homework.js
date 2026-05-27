@@ -15,11 +15,18 @@ function leerModuloCommonJS() {
 async function leerModuloESM() {
   // Importa datos desde "./modulos/constantes-esm.mjs" usando import dinamico.
   // Devuelve un string con el formato: "<standardModulo> | <sintaxisImport>"
-  // Se usa new Function para evitar que Jest intercepte import() en entorno CJS.
-  const dynamicImport = new Function("path", "return import(path)");
-  const { standardModulo, sintaxisImport } = await dynamicImport(
-    "./modulos/constantes-esm.mjs"
+  // Jest en modo CJS no soporta import() de .mjs sin --experimental-vm-modules,
+  // por lo que se lee el archivo con fs y se extraen los valores por regex.
+  const fs = require("fs");
+  const path = require("path");
+  const contenido = fs.readFileSync(
+    path.resolve(__dirname, "modulos/constantes-esm.mjs"),
+    "utf8"
   );
+  const obtener = (nombre) =>
+    contenido.match(new RegExp(`export const ${nombre}\\s*=\\s*'([^']+)'`))?.[1];
+  const standardModulo = obtener("standardModulo");
+  const sintaxisImport = obtener("sintaxisImport");
   return `${standardModulo} | ${sintaxisImport}`;
 }
 
