@@ -15,7 +15,11 @@ function leerModuloCommonJS() {
 async function leerModuloESM() {
   // Importa datos desde "./modulos/constantes-esm.mjs" usando import dinamico.
   // Devuelve un string con el formato: "<standardModulo> | <sintaxisImport>"
-  const { standardModulo, sintaxisImport } = await import("./modulos/constantes-esm.mjs");
+  // Se usa new Function para evitar que Jest intercepte import() en entorno CJS.
+  const dynamicImport = new Function("path", "return import(path)");
+  const { standardModulo, sintaxisImport } = await dynamicImport(
+    "./modulos/constantes-esm.mjs"
+  );
   return `${standardModulo} | ${sintaxisImport}`;
 }
 
